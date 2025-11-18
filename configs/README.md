@@ -154,39 +154,12 @@ Certain configuration values can be overridden using environment variables:
 
 ## Agent Types
 
-### BaseAgent (US Stocks Daily)
-- **Market Support**: US stocks
-- **Trading Frequency**: Daily
-- **Use Case**: General-purpose trading agent with flexible market selection
-- **Stock Pool**: Configurable (NASDAQ 100 by default)
-
-### BaseAgent_Hour (US Stocks Hourly)
-- **Market Support**: US stocks
-- **Trading Frequency**: Hourly
-- **Use Case**: US stocks hourly trading with fine-grained timing control
-- **Stock Pool**: Configurable (NASDAQ 100 by default)
-
 ### BaseAgentAStock (A-Shares Daily)
 - **Market Support**: A-share market only
 - **Trading Frequency**: Daily
 - **Use Case**: Specialized A-share daily trading with built-in Chinese market rules
 - **Stock Pool**: SSE 50 by default
 - **Trading Rules**: T+1 settlement, 100-share lot size, CNY pricing
-
-### BaseAgentAStock_Hour (A-Shares Hourly)
-- **Market Support**: A-share market only
-- **Trading Frequency**: Hourly (10:30/11:30/14:00/15:00)
-- **Use Case**: A-share hourly trading with 4 intraday time points
-- **Stock Pool**: SSE 50 by default
-- **Trading Rules**: T+1 settlement, 100-share lot size, CNY pricing
-- **Data Source**: merged_hourly.jsonl
-
-### BaseAgentCrypto (Crypto Daily)
-- **Market Support**: Cryptocurrencies only
-- **Trading Frequency**: Daily
-- **Use Case**: Specialized cryptocurrency daily trading with built-in crypto market rules
-- **Asset Pool**: BITWISE10 index by default (BTC, ETH, XRP, SOL, ADA, SUI, LINK, AVAX, LTC, DOT)
-- **Trading Rules**: 24/7 trading, USDT denominated, no lot size restrictions, uses UTC 00:00 price for buy/sell operations
 
 ## Notes
 
@@ -196,4 +169,4 @@ Certain configuration values can be overridden using environment variables:
 - Configuration errors will cause the system to exit with appropriate error messages
 - The configuration system supports dynamic agent class loading through the `AGENT_REGISTRY` mapping
 - When using `BaseAgentAStock`, the `market` parameter is automatically set to `"cn"`
-- Initial cash should be $10,000 for US stocks and ¥100,000 for A-shares
+- Initial cash should be ¥100,000 for A-shares (adjustable, minimum ¥10,000 recommended)
