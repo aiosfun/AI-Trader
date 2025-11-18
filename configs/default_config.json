@@ -36,7 +36,7 @@
       "name": "glm-4.6",
       "basemodel": "glm-4.6",
       "signature": "glm-4.6",
-      "enabled": false
+      "enabled": true
     },
     {
       "name": "deepseek-chat",
