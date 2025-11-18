@@ -172,7 +172,6 @@ AI-Trader Bench/
 │   ├── agent/
 │   │   └── base_agent_astock/     # 🇨🇳 A-share specific trading agent
 │   │       ├── base_agent_astock.py  # A-share agent class (daily)
-│   │       ├── base_agent_astock_hour.py # A-share hourly trading agent
 │   │       └── __init__.py
 │   └── configs/                   # ⚙️ Configuration files
 │
@@ -194,11 +193,8 @@ AI-Trader Bench/
 │   │   │   │   ├── A_stock_hourly.csv         # ⏰ 60-minute K-line data (CSV)
 │   │   │   │   └── index_daily_sse_50.json    # 📊 SSE 50 index benchmark data
 │   │   │   ├── merged.jsonl               # 🔄 A-share daily unified data format
-│   │   │   ├── merged_hourly.jsonl        # ⏰ A-share hourly unified data format
 │   │   │   ├── get_daily_price_tushare.py # 📥 A-share daily data fetching (Tushare API)
-│   │   │   ├── get_interdaily_price_astock.py # ⏰ A-share hourly data fetching (efinance)
-│   │   │   ├── merge_jsonl_tushare.py     # 🔄 A-share daily data format conversion (Tushare API)
-│   │   │   └── merge_jsonl_hourly.py      # ⏰ A-share hourly data format conversion (efinance)
+│   │   │   └── merge_jsonl_tushare.py     # 🔄 A-share daily data format conversion (Tushare API)
 │   │   └── agent_data_astock/     # 📝 A-share AI trading records
 │   └── calculate_performance.py   # 📈 Performance analysis
 │
@@ -236,7 +232,6 @@ AI-Trader Bench/
 | Agent Type | Module Path | Use Case | Features |
 |-----------|-------------|----------|----------|
 | **BaseAgentAStock** | `agent.base_agent_astock.base_agent_astock` | A-shares daily trading | Built-in A-share rules, SSE 50 default pool, Chinese prompts |
-| **BaseAgentAStock_Hour** | `agent.base_agent_astock.base_agent_astock_hour` | A-shares hourly trading | A-share hourly data (10:30/11:30/14:00/15:00), T+1 rules |
 
 **Architecture Advantages**:
 - 🎯 **Specialized Optimization**: A-share agents deeply optimized for Chinese market characteristics
@@ -371,12 +366,6 @@ python get_daily_price_tushare.py
 python merge_jsonl_tushare.py
 
 # 📊 Daily data will be saved to: data/A_stock/merged.jsonl
-
-# ⏰ Get 60-minute K-line data (hourly trading)
-python get_interdaily_price_astock.py
-python merge_jsonl_hourly.py
-
-# 📊 Hourly data will be saved to: data/A_stock/merged_hourly.jsonl
 ```
 
 
@@ -424,35 +413,6 @@ python main.py configs/astock_config.json
 }
 ```
 
-#### 📅 A-Share Hourly Configuration Example (Using BaseAgentAStock_Hour)
-```json
-{
-  "agent_type": "BaseAgentAStock_Hour",  // A-share hourly specific agent
-  "market": "cn",                        // Market type: "cn" A-shares (optional, will be ignored, always uses cn)
-  "date_range": {
-    "init_date": "2025-10-09 10:30:00",  // Backtest start time (hourly)
-    "end_date": "2025-10-31 15:00:00"    // Backtest end time (hourly)
-  },
-  "models": [
-    {
-      "name": "claude-3.7-sonnet",
-      "basemodel": "anthropic/claude-3.7-sonnet",
-      "signature": "claude-3.7-sonnet-astock-hour",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "initial_cash": 100000.0        // Initial capital: ¥100,000
-  },
-  "log_config": {
-    "log_path": "./data/agent_data_astock_hour"  // A-share hourly data path
-  }
-}
-```
-
-> 💡 **Tip**: A-share hourly trading time points: 10:30, 11:30, 14:00, 15:00 (4 time points per day)
-
-> 💡 **Tip**: When using `BaseAgentAStock` or `BaseAgentAStock_Hour`, the `market` parameter is automatically set to `"cn"` and doesn't need to be specified manually.
 
 
 ### 📈 Start Web Interface
@@ -524,7 +484,6 @@ python3 -m http.server 8000
 | Agent Type | Applicable Markets | Trading Frequency | Features |
 |-----------|-------------------|------------------|----------|
 | **BaseAgentAStock** | A-shares | Daily | • Optimized for A-share daily trading<br>• Built-in A-share trading rules (100-share lots, T+1)<br>• Default SSE 50 stock pool<br>• Chinese Yuan pricing |
-| **BaseAgentAStock_Hour** | A-shares | Hourly | • A-share hourly trading (10:30/11:30/14:00/15:00)<br>• Supports 4 intraday time points<br>• Inherits all A-share trading rules<br>• Data source: merged_hourly.jsonl |
 
 ### 📊 Data Format
 

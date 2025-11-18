@@ -116,32 +116,6 @@ python main.py configs/test_real_hour_config.json
 }
 ```
 
-### A股小时级配置示例（BaseAgentAStock_Hour）
-```json
-{
-  "agent_type": "BaseAgentAStock_Hour",
-  "market": "cn",
-  "date_range": {
-    "init_date": "2025-10-09 10:30:00",
-    "end_date": "2025-10-31 15:00:00"
-  },
-  "models": [
-    {
-      "name": "claude-3.7-sonnet",
-      "basemodel": "anthropic/claude-3.7-sonnet",
-      "signature": "claude-3.7-sonnet-astock-hour",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "max_steps": 30,
-    "initial_cash": 100000.0
-  },
-  "log_config": {
-    "log_path": "./data/agent_data_astock_hour"
-  }
-}
-```
 
 ### 多模型配置
 ```json

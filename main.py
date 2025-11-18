@@ -7,8 +7,6 @@ from pathlib import Path as _Path
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# 移除美股相关导入
 # Import tools and prompts
 from tools.general_tools import get_config_value, write_config_value
 
@@ -212,7 +210,7 @@ async def main(config_path=None):
         print(f"✅ Runtime config initialized: SIGNATURE={signature}, MARKET={market}")
 
         # Select symbols based on agent type (A-stock only system)
-        if agent_type == "BaseAgentAStock" or agent_type == "BaseAgentAStock_Hour":
+        if agent_type == "BaseAgentAStock":
             stock_symbols = None  # Let BaseAgentAStock use its default SSE 50
         else:
             from prompts.agent_prompt import all_sse_50_symbols
