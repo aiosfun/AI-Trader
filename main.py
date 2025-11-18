@@ -8,31 +8,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from prompts.agent_prompt import all_nasdaq_100_symbols
+# 移除美股相关导入
 # Import tools and prompts
 from tools.general_tools import get_config_value, write_config_value
 
-# Agent class mapping table - for dynamic import and instantiation
+# Agent class mapping table - only A-stock agents available
 AGENT_REGISTRY = {
-    "BaseAgent": {
-        "module": "agent.base_agent.base_agent",
-        "class": "BaseAgent"
-    },
-    "BaseAgent_Hour": {
-        "module": "agent.base_agent.base_agent_hour",
-        "class": "BaseAgent_Hour"
-    },
     "BaseAgentAStock": {
         "module": "agent.base_agent_astock.base_agent_astock",
         "class": "BaseAgentAStock"
-    },
-    "BaseAgentAStock_Hour": {
-        "module": "agent.base_agent_astock.base_agent_astock_hour",
-        "class": "BaseAgentAStock_Hour"
-    },
-    "BaseAgentCrypto": {
-        "module": "agent.base_agent_crypto.base_agent_crypto",
-        "class": "BaseAgentCrypto"
     }
 }
 

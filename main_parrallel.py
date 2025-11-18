@@ -10,18 +10,12 @@ load_dotenv()
 
 # Import tools and prompts
 from tools.general_tools import write_config_value
-from prompts.agent_prompt import all_nasdaq_100_symbols
-
 
 # Agent class mapping table - for dynamic import and instantiation
 AGENT_REGISTRY = {
     "BaseAgent": {
         "module": "agent.base_agent.base_agent",
         "class": "BaseAgent"
-    },
-    "BaseAgent_Hour": {
-        "module": "agent.base_agent.base_agent_hour",
-        "class": "BaseAgent_Hour"
     },
 }
 

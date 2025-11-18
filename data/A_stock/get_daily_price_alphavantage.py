@@ -1,7 +1,12 @@
 import os
-
 import requests
 from dotenv import load_dotenv
+from typing import List
+import sys
+
+# Add parent directory to path to import DataManager
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data_manager import DataManager
 
 load_dotenv()
 import json
@@ -107,53 +112,213 @@ def load_existing_data(filepath: str):
             return None
     return None
 
-def get_daily_price(SYMBOL: str):
+def get_daily_price(SYMBOL: str, force_update: bool = False, verbose: bool = True):
+    """
+    获取A股日价格数据，支持智能缓存和增量更新
+
+    Args:
+        SYMBOL: A股代码
+        force_update: 是否强制更新，忽略本地数据检查
+        verbose: 是否显示详细信息
+    """
+    data_manager = DataManager()
+
+    # 确保数据目录存在
+    os.makedirs("./A_stock_data", exist_ok=True)
+    output_file = f"./A_stock_data/daily_prices_{SYMBOL}.json"
+
+    # 检查是否需要更新数据
+    if not data_manager.should_update_data(output_file, force_update):
+        if verbose:
+            summary = data_manager.get_update_summary(SYMBOL, output_file, False)
+            print(summary)
+        return
+
+    # 需要更新数据，调用API
     FUNCTION = "TIME_SERIES_DAILY"
     OUTPUTSIZE = "compact"
     APIKEY = os.getenv("ALPHAADVANTAGE_API_KEY")
+
+    if not APIKEY:
+        print(f"❌ Error: ALPHAADVANTAGE_API_KEY not found in environment variables")
+        return
+
     url = (
         f"https://www.alphavantage.co/query?function={FUNCTION}&symbol={SYMBOL}&entitlement=delayed&outputsize={OUTPUTSIZE}&apikey={APIKEY}"
     )
-    r = requests.get(url)
-    data = r.json()
-    stock_name = data.get("Meta Data").get("2. Symbol")
-    print("Done for ", stock_name)
-    if data.get("Note") is not None or data.get("Information") is not None:
-        print(f"Error")
-        exit()
-        return
-    if OUTPUTSIZE == "full":
-        data = filter_data(data, "2025-10-01")
-    
-    # 合并数据：保留已存在的日期，只添加新日期
-    output_file = f"./A_stock_data/daily_prices_{SYMBOL}.json"
-    existing_data = load_existing_data(output_file)
-    data = merge_data(existing_data, data)
-    
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-    
-    if SYMBOL == "000016.SHH":
-        # 对于 000016.SHH，也需要合并 Adaily_prices 文件
-        adaily_file = f"./A_stock_data/Adaily_prices_{SYMBOL}.json"
-        existing_adaily_data = load_existing_data(adaily_file)
-        adaily_data = merge_data(existing_adaily_data, data)
-        
-        with open(adaily_file, "w", encoding="utf-8") as f:
-            json.dump(adaily_data, f, ensure_ascii=False, indent=4)
-        
+
+    try:
+        if verbose:
+            print(f"📡 Fetching data for {SYMBOL}...")
+
+        r = requests.get(url, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+
+        # 检查API响应中的错误信息
+        if data.get("Note") is not None:
+            if verbose:
+                print(f"⚠️  {SYMBOL}: API call limit reached - {data.get('Note')}")
+            return
+        if data.get("Information") is not None:
+            if verbose:
+                print(f"⚠️  {SYMBOL}: API information - {data.get('Information')}")
+            return
+        if data.get("Error Message") is not None:
+            if verbose:
+                print(f"❌ {SYMBOL}: API error - {data.get('Error Message')}")
+            return
+
+        # 检查是否有有效数据
+        if "Meta Data" not in data or "Time Series (Daily)" not in data:
+            if verbose:
+                print(f"❌ {SYMBOL}: Invalid data structure received")
+            return
+
+        stock_name = data.get("Meta Data", {}).get("2. Symbol", SYMBOL)
+
+        # 获取最新日期用于摘要
+        latest_date = data_manager.get_latest_data_date(data)
+
+        # 过滤数据（如果需要）
+        if OUTPUTSIZE == "full":
+            data = filter_data(data, "2025-10-01")
+
+        # 合并数据：保留已存在的日期，只添加新日期
+        existing_data = data_manager.load_existing_data(output_file)
+        merged_data = data_manager.merge_time_series_data(existing_data, data)
+
+        # 保存数据
+        data_manager.save_data(merged_data, output_file)
+
+        if verbose:
+            summary = data_manager.get_update_summary(SYMBOL, output_file, True, latest_date)
+            print(summary)
+
+        # 特殊处理上证50指数
+        if SYMBOL == "000016.SHH":
+            handle_index_file(data_manager, data, verbose)
+
+    except requests.exceptions.RequestException as e:
+        if verbose:
+            print(f"❌ {SYMBOL}: Network error - {e}")
+    except Exception as e:
+        if verbose:
+            print(f"❌ {SYMBOL}: Unexpected error - {e}")
+
+
+def handle_index_file(data_manager: DataManager, data: dict, verbose: bool = True):
+    """处理上证50指数文件的特殊处理"""
+    try:
+        # 对于上证50指数，也需要保存 Adaily_prices 文件
+        adaily_file = "./A_stock_data/Adaily_prices_000016.SHH.json"
+        existing_adaily_data = data_manager.load_existing_data(adaily_file)
+        adaily_data = data_manager.merge_time_series_data(existing_adaily_data, data)
+        data_manager.save_data(adaily_data, adaily_file)
+
         # 对于 index_daily_sse_50.json，也需要合并
         index_file = "./A_stock_data/index_daily_sse_50.json"
-        existing_index_data = load_existing_data(index_file)
+        existing_index_data = data_manager.load_existing_data(index_file)
         index_data = data.copy()
-        index_data["Meta Data"]["2. Symbol"] = "000016.SH"
-        index_data = merge_data(existing_index_data, index_data)
-        
-        with open(index_file, "w", encoding="utf-8") as f:
-            json.dump(index_data, f, ensure_ascii=False, indent=4)
+        if "Meta Data" in index_data:
+            index_data["Meta Data"]["2. Symbol"] = "000016.SH"
+        index_data = data_manager.merge_time_series_data(existing_index_data, index_data)
+        data_manager.save_data(index_data, index_file)
+
+        if verbose:
+            print("📊 Updated SSE-50 index files")
+
+    except Exception as e:
+        if verbose:
+            print(f"⚠️  Error handling index files: {e}")
+
+
+def get_all_a_stock_prices(symbols: List[str] = None, force_update: bool = False, quiet: bool = False):
+    """
+    批量获取A股价格数据，支持智能更新
+
+    Args:
+        symbols: A股代码列表，默认为SSE-50
+        force_update: 是否强制更新所有数据
+        quiet: 是否静默运行
+    """
+    if symbols is None:
+        symbols = sse_50_codes
+
+    data_manager = DataManager()
+
+    if not quiet:
+        print(f"🚀 Starting A-stock price update for {len(symbols)} symbols...")
+        print(f"📅 Trading day: {'Yes' if data_manager.is_trading_day() else 'No'}")
+        print(f"🔄 Force update: {'Yes' if force_update else 'No'}")
+
+    updated_count = 0
+    skipped_count = 0
+    error_count = 0
+
+    for i, symbol in enumerate(symbols, 1):
+        try:
+            if not quiet:
+                progress = f"[{i}/{len(symbols)}] "
+                print(f"{progress}", end="")
+
+            # 获取文件路径
+            output_file = f"./A_stock_data/daily_prices_{symbol}.json"
+
+            # 检查是否需要更新
+            should_update = data_manager.should_update_data(output_file, force_update)
+
+            if not should_update:
+                skipped_count += 1
+                if not quiet:
+                    summary = data_manager.get_update_summary(symbol, output_file, False)
+                    print(summary)
+                continue
+
+            # 需要更新，调用API
+            get_daily_price(symbol, force_update, verbose=not quiet)
+            updated_count += 1
+
+            # API调用间隔
+            if i < len(symbols):
+                import time
+                time.sleep(12)  # Alpha Vantage免费版频率限制
+
+        except KeyboardInterrupt:
+            print(f"\n⏹️  Update interrupted by user at {symbol}")
+            break
+        except Exception as e:
+            error_count += 1
+            print(f"❌ Error processing {symbol}: {e}")
+
+    # 显示总结
+    if not quiet:
+        print(f"\n📋 A-Stock Update Summary:")
+        print(f"   ✅ Updated: {updated_count}")
+        print(f"   ⏭️  Skipped: {skipped_count}")
+        print(f"   ❌ Errors: {error_count}")
+        print(f"   📊 Total: {len(symbols)} symbols")
 
 
 if __name__ == "__main__":
-    for symbol in sse_50_codes:
-        get_daily_price(symbol)
-    get_daily_price("000016.SHH")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Update A-stock (SSE-50) price data with smart caching")
+    parser.add_argument("--force", action="store_true", help="Force update all A-stocks")
+    parser.add_argument("--quiet", action="store_true", help="Run in quiet mode")
+    parser.add_argument("--symbols", nargs="+", help="Specific A-stock symbols to update")
+    parser.add_argument("--list", action="store_true", help="List all available A-stock symbols")
+
+    args = parser.parse_args()
+
+    if args.list:
+        print("Available SSE-50 A-stock symbols:")
+        for i, symbol in enumerate(sse_50_codes, 1):
+            print(f"{i:3d}. {symbol}")
+        print(f"\nTotal: {len(sse_50_codes)} symbols")
+    else:
+        get_all_a_stock_prices(
+            symbols=args.symbols,
+            force_update=args.force,
+            quiet=args.quiet
+        )

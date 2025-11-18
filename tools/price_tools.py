@@ -249,18 +249,12 @@ def _resolve_merged_file_path_for_date(
     today_date: Optional[str], market: str, merged_path: Optional[str] = None
 ) -> Path:
     """
-    Resolve the correct merged data file path taking into account market and granularity.
-    For A-shares:
-      - Daily: data/A_stock/merged.jsonl
-      - Hourly (timestamp contains space): data/A_stock/merged_hourly.jsonl
+    Resolve the correct merged data file path taking into account market.
+    For A-shares: Daily trading only (no hourly support)
     A custom merged_path, if provided, takes precedence.
     """
     if merged_path is not None:
         return Path(merged_path)
-    base_dir = Path(__file__).resolve().parents[1]
-    if market == "cn" and today_date and " " in today_date:
-        # Hourly trading session for A-shares
-        return base_dir / "data" / "A_stock" / "merged_hourly.jsonl"
     return get_merged_file_path(market)
 
 
