@@ -28,7 +28,6 @@ class MCPServiceManager:
             "search": int(os.getenv("SEARCH_HTTP_PORT", "8001")),
             "trade": int(os.getenv("TRADE_HTTP_PORT", "8002")),
             "price": int(os.getenv("GETPRICE_HTTP_PORT", "8003")),
-            "crypto": int(os.getenv("CRYPTO_HTTP_PORT", "8005")),
         }
 
         # Service configurations
@@ -36,10 +35,9 @@ class MCPServiceManager:
         self.service_configs = {
             "math": {"script": os.path.join(mcp_server_dir, "tool_math.py"), "name": "Math", "port": self.ports["math"]},
             # "search": {"script": "tool_jina_search.py", "name": "Search", "port": self.ports["search"]},
-            "search": {"script": os.path.join(mcp_server_dir, "tool_jina_search.py"), "name": "Search", "port": self.ports["search"]},  
+            "search": {"script": os.path.join(mcp_server_dir, "tool_jina_search.py"), "name": "Search", "port": self.ports["search"]},
             "trade": {"script": os.path.join(mcp_server_dir, "tool_trade.py"), "name": "TradeTools", "port": self.ports["trade"]},
             "price": {"script": os.path.join(mcp_server_dir, "tool_get_price_local.py"), "name": "LocalPrices", "port": self.ports["price"]},
-            "crypto": {"script": os.path.join(mcp_server_dir, "tool_crypto_trade.py"), "name": "CryptoTradeTools", "port": self.ports["crypto"]},
         }
 
         # Create logs directory
@@ -145,15 +143,19 @@ class MCPServiceManager:
         if process.poll() is not None:
             return False
 
-        # Check if port is responding (simple check)
+        # Check if port is responding (FastMCP specific check)
         try:
             import socket
 
+            # 检查端口是否开放 - 对于FastMCP来说这足够了
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(1)
+            sock.settimeout(2)
             result = sock.connect_ex(("localhost", port))
             sock.close()
+
+            # 如果端口开放就认为服务健康
             return result == 0
+
         except:
             return False
 
@@ -185,7 +187,7 @@ class MCPServiceManager:
 
         # Wait for services to start
         print("\n⏳ Waiting for services to start...")
-        time.sleep(3)
+        time.sleep(8)  # 增加等待时间，FastMCP启动需要更长时间
 
         # Check service status
         print("\n🔍 Checking service status...")
