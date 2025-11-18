@@ -13,10 +13,10 @@ from tools.general_tools import write_config_value
 
 # Agent class mapping table - for dynamic import and instantiation
 AGENT_REGISTRY = {
-    "BaseAgent": {
-        "module": "agent.base_agent.base_agent",
-        "class": "BaseAgent"
-    },
+    "BaseAgentAStock": {
+        "module": "agent.base_agent_astock.base_agent_astock",
+        "class": "BaseAgentAStock"
+    }
 }
 
 
@@ -25,7 +25,7 @@ def get_agent_class(agent_type):
     Dynamically import and return the corresponding class based on agent type name
     
     Args:
-        agent_type: Agent type name (e.g., "BaseAgent")
+        agent_type: Agent type name (e.g., "BaseAgentAStock")
         
     Returns:
         Agent class
@@ -193,7 +193,7 @@ async def main(config_path=None, only_signature: str | None = None):
     config = load_config(config_path)
     
     # Get Agent type
-    agent_type = config.get("agent_type", "BaseAgent")
+    agent_type = config.get("agent_type", "BaseAgentAStock")
     try:
         AgentClass = get_agent_class(agent_type)
     except (ValueError, ImportError, AttributeError) as e:

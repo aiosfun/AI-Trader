@@ -1,5 +1,5 @@
 {
-  "agent_type": "BaseAgent",
+  "agent_type": "BaseAgentAStock",
   "date_range": {
     "init_date": "2025-10-01",
     "end_date": "2025-10-21"

@@ -26,7 +26,7 @@ def get_agent_class(agent_type):
     Dynamically import and return the corresponding class based on agent type name
 
     Args:
-        agent_type: Agent type name (e.g., "BaseAgent")
+        agent_type: Agent type name (e.g., "BaseAgentAStock")
 
     Returns:
         Agent class
@@ -91,7 +91,7 @@ def load_config(config_path=None):
 
 
 async def main(config_path=None):
-    """Run trading experiment using BaseAgent class
+    """Run trading experiment using BaseAgentAStock class
 
     Args:
         config_path: Configuration file path, if None use default config
@@ -100,7 +100,7 @@ async def main(config_path=None):
     config = load_config(config_path)
 
     # Get Agent type
-    agent_type = config.get("agent_type", "BaseAgent")
+    agent_type = config.get("agent_type", "BaseAgentAStock")
     try:
         AgentClass = get_agent_class(agent_type)
     except (ValueError, ImportError, AttributeError) as e:
@@ -112,15 +112,12 @@ async def main(config_path=None):
     # Auto-detect market from agent_type (BaseAgentAStock always uses CN market)
     if agent_type == "BaseAgentAStock" or agent_type == "BaseAgentAStock_Hour":
         market = "cn"
-    elif agent_type == "BaseAgentCrypto":
-        market = "crypto"
 
-    if market == "crypto":
-        print(f"🌍 Market type: Cryptocurrency (24/7 trading)")
-    elif market == "cn":
+    if market == "cn":
         print(f"🌍 Market type: A-shares (China)")
     else:
-        print(f"🌍 Market type: US stocks")
+        print(f"❌ US stock market is not supported in A-stock only system")
+        return
 
     # Get date range from configuration file
     INIT_DATE = config["date_range"]["init_date"]
@@ -223,48 +220,31 @@ async def main(config_path=None):
         print(f"✅ Runtime config initialized: SIGNATURE={signature}, MARKET={market}")
 
         # Select symbols based on agent type and market
-        # Crypto agents don't use stock_symbols parameter
-        if agent_type == "BaseAgentCrypto":
-            stock_symbols = None  # Crypto agent uses its own crypto_symbols
-        elif agent_type == "BaseAgentAStock" or agent_type == "BaseAgentAStock_Hour":
+        if agent_type == "BaseAgentAStock" or agent_type == "BaseAgentAStock_Hour":
             stock_symbols = None  # Let BaseAgentAStock use its default SSE 50
         elif market == "cn":
             from prompts.agent_prompt import all_sse_50_symbols
-
             stock_symbols = all_sse_50_symbols
         else:
-            stock_symbols = all_nasdaq_100_symbols
+            # No US stock support in A-stock only system
+            print("❌ US stock market is not supported in A-stock only system")
+            continue
 
         try:
             # Dynamically create Agent instance
-            # Crypto agents have different parameter requirements
-            if agent_type == "BaseAgentCrypto":
-                agent = AgentClass(
-                    signature=signature,
-                    basemodel=basemodel,
-                    log_path=log_path,
-                    max_steps=max_steps,
-                    max_retries=max_retries,
-                    base_delay=base_delay,
-                    initial_cash=initial_cash,
-                    init_date=INIT_DATE,
-                    openai_base_url=openai_base_url,
-                    openai_api_key=openai_api_key
-                )
-            else:
-                agent = AgentClass(
-                    signature=signature,
-                    basemodel=basemodel,
-                    stock_symbols=stock_symbols,
-                    log_path=log_path,
-                    max_steps=max_steps,
-                    max_retries=max_retries,
-                    base_delay=base_delay,
-                    initial_cash=initial_cash,
-                    init_date=INIT_DATE,
-                    openai_base_url=openai_base_url,
-                    openai_api_key=openai_api_key
-                )
+            agent = AgentClass(
+                signature=signature,
+                basemodel=basemodel,
+                stock_symbols=stock_symbols,
+                log_path=log_path,
+                max_steps=max_steps,
+                max_retries=max_retries,
+                base_delay=base_delay,
+                initial_cash=initial_cash,
+                init_date=INIT_DATE,
+                openai_base_url=openai_base_url,
+                openai_api_key=openai_api_key
+            )
 
             print(f"✅ {agent_type} instance created successfully: {agent}")
 
@@ -288,14 +268,7 @@ async def main(config_path=None):
             print(f"   - Total records: {summary.get('total_records')}")
             print(f"   - Cash balance: {currency_symbol}{summary.get('positions', {}).get('CASH', 0):,.2f}")
 
-            # Show crypto positions if this is a crypto agent
-            if agent.market == "crypto" and hasattr(agent, 'crypto_symbols'):
-                crypto_positions = {k: v for k, v in summary.get('positions', {}).items() if k.endswith('-USDT') and v > 0}
-                if crypto_positions:
-                    print(f"   - Crypto positions:")
-                    for symbol, amount in crypto_positions.items():
-                        print(f"     • {symbol}: {amount}")
-
+    
         except Exception as e:
             print(f"❌ Error processing model {model_name} ({signature}): {str(e)}")
             print(f"📋 Error details: {e}")
