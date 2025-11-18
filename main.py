@@ -242,13 +242,8 @@ async def main(config_path=None):
 
             # Display final position summary
             summary = agent.get_position_summary()
-            # Get currency symbol from agent's actual market (more accurate)
-            if agent.market == "crypto":
-                currency_symbol = "USDT"
-            elif agent.market == "cn":
-                currency_symbol = "¥"
-            else:
-                currency_symbol = "$"
+            # A股专用 - 直接使用人民币符号
+            currency_symbol = "¥"
             print(f"📊 Final position summary:")
             print(f"   - Latest date: {summary.get('latest_date')}")
             print(f"   - Total records: {summary.get('total_records')}")

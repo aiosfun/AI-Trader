@@ -2,7 +2,7 @@
   "agent_type": "BaseAgentAStock",
   "market": "cn",
   "date_range": {
-    "init_date": "2025-10-01",
+    "init_date": "2025-10-09",
     "end_date": "2025-10-21"
   },
   "models": [
