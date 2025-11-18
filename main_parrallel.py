@@ -118,6 +118,7 @@ async def _run_model_in_current_process(AgentClass, model_config, INIT_DATE, END
     os.environ["SIGNATURE"] = signature
     write_config_value("TODAY_DATE", END_DATE)
     write_config_value("IF_TRADE", False)
+    write_config_value("MARKET", "cn")  # A股专用配置
 
     max_steps = agent_config.get("max_steps", 10)
     max_retries = agent_config.get("max_retries", 3)
@@ -127,10 +128,11 @@ async def _run_model_in_current_process(AgentClass, model_config, INIT_DATE, END
     log_path = log_config.get("log_path", "./data/agent_data")
 
     try:
+        # A股专用配置 - 使用默认SSE 50股票池
         agent = AgentClass(
             signature=signature,
             basemodel=basemodel,
-            stock_symbols=all_nasdaq_100_symbols,
+            stock_symbols=None,  # 让BaseAgentAStock使用默认的SSE 50
             log_path=log_path,
             openai_base_url=openai_base_url,
             openai_api_key=openai_api_key,
@@ -147,10 +149,12 @@ async def _run_model_in_current_process(AgentClass, model_config, INIT_DATE, END
         await agent.run_date_range(INIT_DATE, END_DATE)
 
         summary = agent.get_position_summary()
+        # A股专用 - 直接使用人民币符号
+        currency_symbol = "¥"
         print(f"📊 Final position summary:")
         print(f"   - Latest date: {summary.get('latest_date')}")
         print(f"   - Total records: {summary.get('total_records')}")
-        print(f"   - Cash balance: ${summary.get('positions', {}).get('CASH', 0):.2f}")
+        print(f"   - Cash balance: {currency_symbol}{summary.get('positions', {}).get('CASH', 0):,.2f}")
 
     except Exception as e:
         print(f"❌ Error processing model {model_name} ({signature}): {str(e)}")
