@@ -1,0 +1,28 @@
+{
+  "agent_type": "BaseAgentAStock",
+  "market": "cn",
+  "date_range": {
+    "init_date": "2025-10-09",
+    "end_date": "2025-10-21"
+  },
+  "models": [
+    {
+      "name": "mock-model",
+      "basemodel": "mock/mock-model",
+      "signature": "mock-model",
+      "enabled": true,
+      "openai_base_url": "http://localhost:9999",
+      "openai_api_key": "mock-key"
+    }
+  ],
+  "agent_config": {
+    "max_steps": 2,
+    "max_retries": 1,
+    "base_delay": 0.5,
+    "initial_cash": 10000.0,
+    "verbose": true
+  },
+  "log_config": {
+    "log_path": "./data/agent_data"
+  }
+}
