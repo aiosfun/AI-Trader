@@ -207,11 +207,7 @@ python main.py configs/test_real_hour_config.json
 
 ### 代理类型 (agent_type)
 目前支持的类型：
-- `BaseAgent`: 美股日线交易代理
-- `BaseAgent_Hour`: 美股小时级交易代理
 - `BaseAgentAStock`: A股日线专用交易代理，内置A股交易规则
-- `BaseAgentAStock_Hour`: A股小时级专用交易代理，支持盘中4个时间点交易
-- `BaseAgentCrypto`: 加密货币日线专用交易代理，内置数字货币交易规则
 
 ### 模型配置 (models)
 每个模型需要包含以下字段：
