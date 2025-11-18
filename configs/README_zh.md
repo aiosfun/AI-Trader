@@ -10,10 +10,9 @@
 
 | 配置文件 | 市场 | 交易频率 | 说明 |
 |---------|------|---------|------|
-| `default_config.json` | 美股（纳斯达克100） | 日线 | 默认美股交易配置 |
+| `default_config.json` | A股（上证50） | 日线 | 默认A股交易配置 |
 | `astock_config.json` | A股（上证50） | 日线 | A股日线交易配置 |
-| `astock_hour_config.json` | A股（上证50） | 小时级 | A股小时级交易配置（10:30/11:30/14:00/15:00） |
-| `default_crypto_config.json` | 加密货币（BITWISE10） | 日线 | 加密货币交易配置，使用BaseAgentCrypto |
+| `default_day_config.json` | A股（上证50） | 日线 | A股日线交易配置（备选） |
 
 ### `default_config.json`
 
@@ -25,7 +24,7 @@
   - `max_steps`: 每次交易决策的最大推理步数（默认：30）
   - `max_retries`: 失败操作的最大重试次数（默认：3）
   - `base_delay`: 操作间的基础延迟时间（秒）（默认：1.0）
-  - `initial_cash`: 交易起始资金（默认：$10,000）
+  - `initial_cash`: 交易起始资金（默认：¥10,000）
 
 #### 日期范围
 - **`date_range`**: 交易周期配置
@@ -90,33 +89,6 @@ python main.py configs/test_real_hour_config.json
 
 ## 配置示例
 
-### 美股配置示例（BaseAgent）
-```json
-{
-  "agent_type": "BaseAgent",
-  "market": "us",
-  "date_range": {
-    "init_date": "2025-01-01",
-    "end_date": "2025-01-31"
-  },
-  "models": [
-    {
-      "name": "gpt-4o",
-      "basemodel": "openai/gpt-4o-2024-11-20",
-      "signature": "gpt-4o-2024-11-20",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "max_steps": 30,
-    "initial_cash": 10000.0
-  },
-  "log_config": {
-    "log_path": "./data/agent_data"
-  }
-}
-```
-
 ### A股日线配置示例（BaseAgentAStock）
 ```json
 {
@@ -171,41 +143,11 @@ python main.py configs/test_real_hour_config.json
 }
 ```
 
-> 💡 **提示**: A股小时级交易时间点为：10:30、11:30、14:00、15:00（每天4个时间点）
-
-### 加密货币日线配置示例（BaseAgentCrypto）
-```json
-{
-  "agent_type": "BaseAgentCrypto",
-  "market": "crypto",
-  "date_range": {
-    "init_date": "2025-10-20",
-    "end_date": "2025-10-31"
-  },
-  "models": [
-    {
-      "name": "claude-3.7-sonnet",
-      "basemodel": "anthropic/claude-3.7-sonnet",
-      "signature": "claude-3.7-sonnet",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "max_steps": 30,
-    "initial_cash": 50000.0
-  },
-  "log_config": {
-    "log_path": "./data/agent_data_crypto"
-  }
-}
-```
-
-> 💡 **提示**: BaseAgentCrypto使用UTC 00:00价格进行买入/卖出操作，支持24/7加密货币交易
-
 ### 多模型配置
 ```json
 {
-  "agent_type": "BaseAgent",
+  "agent_type": "BaseAgentAStock",
+  "market": "cn",
   "date_range": {
     "init_date": "2025-01-01",
     "end_date": "2025-01-31"

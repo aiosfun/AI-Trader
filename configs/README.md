@@ -10,10 +10,9 @@ This directory contains multiple configuration files for different trading scena
 
 | Configuration File | Market | Trading Frequency | Description |
 |-------------------|--------|-------------------|-------------|
-| `default_config.json` | US (NASDAQ 100) | Daily | Default US stock trading configuration |
+| `default_config.json` | CN (SSE 50) | Daily | Default A-share trading configuration |
 | `astock_config.json` | CN (SSE 50) | Daily | A-share daily trading configuration |
-| `astock_hour_config.json` | CN (SSE 50) | Hourly | A-share hourly trading configuration (10:30/11:30/14:00/15:00) |
-| `default_crypto_config.json` | Crypto (BITWISE10) | Daily | Cryptocurrency trading configuration with BaseAgentCrypto |
+| `default_day_config.json` | CN (SSE 50) | Daily | A-share daily trading configuration (alternative) |
 
 ### `default_config.json`
 
@@ -25,7 +24,7 @@ The main configuration file that defines all system parameters. This file is loa
   - `max_steps`: Maximum number of reasoning steps per trading decision (default: 30)
   - `max_retries`: Maximum retry attempts for failed operations (default: 3)
   - `base_delay`: Base delay between operations in seconds (default: 1.0)
-  - `initial_cash`: Starting cash amount for trading (default: $10,000)
+  - `initial_cash`: Starting cash amount for trading (default: ¥10,000)
 
 #### Date Range
 - **`date_range`**: Trading period configuration
@@ -51,18 +50,13 @@ The main configuration file that defines all system parameters. This file is loa
 The easiest way to run the system with a specific configuration:
 
 ```bash
-# US Market (NASDAQ 100) - uses default_config.json
-bash scripts/main.sh
-
-# US Market with hourly data
-bash scripts/main_step1.sh  # Prepare hourly price data
-bash scripts/main_step2.sh  # Start MCP services
-bash scripts/main_step3.sh  # Run with test_real_hour_config.json
-
-# A-Share Market (SSE 50) - uses astock_config.json
+# A-Share Market (SSE 50) - uses default_config.json
 bash scripts/main_a_stock_step1.sh  # Prepare A-share data
 bash scripts/main_a_stock_step2.sh  # Start MCP services
-bash scripts/main_a_stock_step3.sh  # Run with astock_config.json
+bash scripts/main_a_stock_step3.sh  # Run with default_config.json
+
+# A-Share Market with different config
+python main.py configs/astock_config.json
 ```
 
 ### Manual Configuration
@@ -80,7 +74,7 @@ You can specify a custom configuration file:
 ```bash
 python main.py configs/my_custom_config.json
 python main.py configs/astock_config.json
-python main.py configs/test_real_hour_config.json
+python main.py configs/default_day_config.json
 ```
 
 ### Environment Variable Overrides
@@ -89,33 +83,6 @@ Certain configuration values can be overridden using environment variables:
 - `END_DATE`: Overrides the end trading date
 
 ## Configuration Examples
-
-### US Stock Configuration (BaseAgent)
-```json
-{
-  "agent_type": "BaseAgent",
-  "market": "us",
-  "date_range": {
-    "init_date": "2025-01-01",
-    "end_date": "2025-01-31"
-  },
-  "models": [
-    {
-      "name": "gpt-4o",
-      "basemodel": "openai/gpt-4o-2024-11-20",
-      "signature": "gpt-4o-2024-11-20",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "max_steps": 30,
-    "initial_cash": 10000.0
-  },
-  "log_config": {
-    "log_path": "./data/agent_data"
-  }
-}
-```
 
 ### A-Share Daily Configuration (BaseAgentAStock)
 ```json
@@ -144,68 +111,11 @@ Certain configuration values can be overridden using environment variables:
 }
 ```
 
-### A-Share Hourly Configuration (BaseAgentAStock_Hour)
-```json
-{
-  "agent_type": "BaseAgentAStock_Hour",
-  "market": "cn",
-  "date_range": {
-    "init_date": "2025-10-09 10:30:00",
-    "end_date": "2025-10-31 15:00:00"
-  },
-  "models": [
-    {
-      "name": "claude-3.7-sonnet",
-      "basemodel": "anthropic/claude-3.7-sonnet",
-      "signature": "claude-3.7-sonnet-astock-hour",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "max_steps": 30,
-    "initial_cash": 100000.0
-  },
-  "log_config": {
-    "log_path": "./data/agent_data_astock_hour"
-  }
-}
-```
-
-> 💡 **Tip**: A-share hourly trading time points: 10:30, 11:30, 14:00, 15:00 (4 time points per day)
-
-### Cryptocurrency Daily Configuration (BaseAgentCrypto)
-```json
-{
-  "agent_type": "BaseAgentCrypto",
-  "market": "crypto",
-  "date_range": {
-    "init_date": "2025-10-20",
-    "end_date": "2025-10-31"
-  },
-  "models": [
-    {
-      "name": "claude-3.7-sonnet",
-      "basemodel": "anthropic/claude-3.7-sonnet",
-      "signature": "claude-3.7-sonnet",
-      "enabled": true
-    }
-  ],
-  "agent_config": {
-    "max_steps": 30,
-    "initial_cash": 50000.0
-  },
-  "log_config": {
-    "log_path": "./data/agent_data_crypto"
-  }
-}
-```
-
-> 💡 **Tip**: BaseAgentCrypto uses UTC 00:00 price for buy/sell operations and supports 24/7 cryptocurrency trading
-
 ### Multi-Model Configuration
 ```json
 {
-  "agent_type": "BaseAgent",
+  "agent_type": "BaseAgentAStock",
+  "market": "cn",
   "date_range": {
     "init_date": "2025-01-01",
     "end_date": "2025-01-31"
