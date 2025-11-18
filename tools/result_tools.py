@@ -98,7 +98,7 @@ def get_available_date_range(signature: str) -> Tuple[str, str]:
 
 
 def get_daily_portfolio_values(
-    modelname: str, start_date: Optional[str] = None, end_date: Optional[str] = None, market: str = "us"
+    modelname: str, start_date: Optional[str] = None, end_date: Optional[str] = None, market: str = "cn"
 ) -> Dict[str, float]:
     """
     Get daily portfolio values
@@ -107,13 +107,13 @@ def get_daily_portfolio_values(
         signature: Model name
         start_date: Start date in YYYY-MM-DD format, uses earliest date if None
         end_date: End date in YYYY-MM-DD format, uses latest date if None
-        market: Market type, "us" for US stocks or "cn" for A-shares
+        market: Market type, "cn" for A-shares or "crypto" for cryptocurrencies
 
     Returns:
         Dictionary of daily portfolio values in format {date: portfolio_value}
     """
     from tools.general_tools import get_config_value
-    from tools.price_tools import (all_nasdaq_100_symbols, all_sse_50_symbols,
+    from tools.price_tools import (all_sse_50_symbols,
                                    get_merged_file_path)
 
     base_dir = Path(__file__).resolve().parents[1]
@@ -174,7 +174,7 @@ def get_daily_portfolio_values(
                 continue
 
     # Select stock symbols based on market
-    stock_symbols = all_sse_50_symbols if market == "cn" else all_nasdaq_100_symbols
+    stock_symbols = all_sse_50_symbols if market == "cn" else all_sse_50_symbols
 
     # Calculate daily portfolio values
     daily_values = {}
@@ -452,7 +452,7 @@ def calculate_profit_loss_ratio(returns: List[float]) -> float:
 
 
 def calculate_all_metrics(
-    modelname: str, start_date: Optional[str] = None, end_date: Optional[str] = None, market: str = "us"
+    modelname: str, start_date: Optional[str] = None, end_date: Optional[str] = None, market: str = "cn"
 ) -> Dict[str, any]:
     """
     Calculate all performance metrics
@@ -461,7 +461,7 @@ def calculate_all_metrics(
         signature: Model name
         start_date: Start date in YYYY-MM-DD format, uses earliest date if None
         end_date: End date in YYYY-MM-DD format, uses latest date if None
-        market: Market type, "us" for US stocks or "cn" for A-shares
+        market: Market type, "cn" for A-shares or "crypto" for cryptocurrencies
 
     Returns:
         Dictionary containing all metrics
@@ -871,7 +871,7 @@ def calculate_and_save_metrics(
     end_date: Optional[str] = None,
     output_dir: Optional[str] = None,
     print_report: bool = True,
-    market: str = "us",
+    market: str = "cn",
 ) -> Dict[str, any]:
     """
     Entry function to calculate all metrics and save in JSONL format
@@ -882,7 +882,7 @@ def calculate_and_save_metrics(
         end_date: End date in YYYY-MM-DD format, uses latest date if None
         output_dir: Output directory, defaults to data/agent_data/{signature}/metrics/
         print_report: Whether to print report
-        market: Market type ("us" or "cn")
+        market: Market type ("cn" or "crypto")
 
     Returns:
         Dictionary containing all metrics and saved file path
@@ -940,8 +940,8 @@ if __name__ == "__main__":
         print("请设置环境变量 SIGNATURE，例如: export SIGNATURE=claude-3.7-sonnet")
         sys.exit(1)
 
-    # Get market type from config, default to "us"
-    market = get_config_value("MARKET", "us")
+    # Get market type from config, default to "cn"
+    market = get_config_value("MARKET", "cn")
 
     # 使用入口函数计算和保存指标
     result = calculate_and_save_metrics(signature, market=market)

@@ -48,15 +48,15 @@ def get_market_type() -> str:
     """
     智能获取市场类型，支持多种检测方式：
     1. 优先从配置中读取 MARKET
-    2. 如果未设置，则根据 LOG_PATH 推断（agent_data_astock -> cn, agent_data_crypto -> crypto, agent_data -> us）
-    3. 最后默认为 us
+    2. 如果未设置，则根据 LOG_PATH 推断（agent_data_astock -> cn, agent_data_crypto -> crypto）
+    3. 最后默认为 cn (A-stock only system)
 
     Returns:
-        "cn" for A-shares market, "us" for US market, "crypto" for cryptocurrency market
+        "cn" for A-shares market, "crypto" for cryptocurrency market
     """
     # 方式1: 从配置读取
     market = get_config_value("MARKET", None)
-    if market in ["cn", "us", "crypto"]:
+    if market in ["cn", "crypto"]:
         return market
 
     # 方式2: 根据 LOG_PATH 推断
@@ -66,113 +66,11 @@ def get_market_type() -> str:
     elif "crypto" in log_path.lower():
         return "crypto"
 
-    # 方式3: 默认为美股
-    return "us"
+    # 方式3: 默认为A股
+    return "cn"
 
 
-all_nasdaq_100_symbols = [
-    "NVDA",
-    "MSFT",
-    "AAPL",
-    "GOOG",
-    "GOOGL",
-    "AMZN",
-    "META",
-    "AVGO",
-    "TSLA",
-    "NFLX",
-    "PLTR",
-    "COST",
-    "ASML",
-    "AMD",
-    "CSCO",
-    "AZN",
-    "TMUS",
-    "MU",
-    "LIN",
-    "PEP",
-    "SHOP",
-    "APP",
-    "INTU",
-    "AMAT",
-    "LRCX",
-    "PDD",
-    "QCOM",
-    "ARM",
-    "INTC",
-    "BKNG",
-    "AMGN",
-    "TXN",
-    "ISRG",
-    "GILD",
-    "KLAC",
-    "PANW",
-    "ADBE",
-    "HON",
-    "CRWD",
-    "CEG",
-    "ADI",
-    "ADP",
-    "DASH",
-    "CMCSA",
-    "VRTX",
-    "MELI",
-    "SBUX",
-    "CDNS",
-    "ORLY",
-    "SNPS",
-    "MSTR",
-    "MDLZ",
-    "ABNB",
-    "MRVL",
-    "CTAS",
-    "TRI",
-    "MAR",
-    "MNST",
-    "CSX",
-    "ADSK",
-    "PYPL",
-    "FTNT",
-    "AEP",
-    "WDAY",
-    "REGN",
-    "ROP",
-    "NXPI",
-    "DDOG",
-    "AXON",
-    "ROST",
-    "IDXX",
-    "EA",
-    "PCAR",
-    "FAST",
-    "EXC",
-    "TTWO",
-    "XEL",
-    "ZS",
-    "PAYX",
-    "WBD",
-    "BKR",
-    "CPRT",
-    "CCEP",
-    "FANG",
-    "TEAM",
-    "CHTR",
-    "KDP",
-    "MCHP",
-    "GEHC",
-    "VRSK",
-    "CTSH",
-    "CSGP",
-    "KHC",
-    "ODFL",
-    "DXCM",
-    "TTD",
-    "ON",
-    "BIIB",
-    "LULU",
-    "CDW",
-    "GFS",
-]
+# NASDAQ symbols removed - A-stock only system
 
 all_sse_50_symbols = [
     "600519.SH",
@@ -228,11 +126,11 @@ all_sse_50_symbols = [
 ]
 
 
-def get_merged_file_path(market: str = "us") -> Path:
+def get_merged_file_path(market: str = "cn") -> Path:
     """Get merged.jsonl path based on market type.
 
     Args:
-        market: Market type, "us" for US stocks, "cn" for A-shares, "crypto" for cryptocurrencies
+        market: Market type, "cn" for A-shares, "crypto" for cryptocurrencies
 
     Returns:
         Path object pointing to the merged.jsonl file
@@ -243,7 +141,8 @@ def get_merged_file_path(market: str = "us") -> Path:
     elif market == "crypto":
         return base_dir / "data" / "crypto" / "crypto_merged.jsonl"
     else:
-        return base_dir / "data" / "merged.jsonl"
+        # Default to A-stock data
+        return base_dir / "data" / "A_stock" / "merged.jsonl"
 
 def _resolve_merged_file_path_for_date(
     today_date: Optional[str], market: str, merged_path: Optional[str] = None
@@ -258,12 +157,12 @@ def _resolve_merged_file_path_for_date(
     return get_merged_file_path(market)
 
 
-def is_trading_day(date: str, market: str = "us") -> bool:
+def is_trading_day(date: str, market: str = "cn") -> bool:
     """Check if a given date is a trading day by looking up merged.jsonl.
 
     Args:
         date: Date string in "YYYY-MM-DD" format
-        market: Market type ("us", "cn", or "crypto")
+        market: Market type ("cn" or "crypto")
 
     Returns:
         True if the date exists in merged.jsonl (is a trading day), False otherwise
@@ -327,11 +226,11 @@ def is_trading_day(date: str, market: str = "us") -> bool:
         return False
 
 
-def get_all_trading_days(market: str = "us") -> List[str]:
+def get_all_trading_days(market: str = "cn") -> List[str]:
     """Get all available trading days from merged.jsonl.
 
     Args:
-        market: Market type ("us" or "cn")
+        market: Market type ("cn" or "crypto")
 
     Returns:
         Sorted list of trading dates in "YYYY-MM-DD" format
@@ -359,11 +258,11 @@ def get_all_trading_days(market: str = "us") -> List[str]:
         return []
 
 
-def get_stock_name_mapping(market: str = "us") -> Dict[str, str]:
+def get_stock_name_mapping(market: str = "cn") -> Dict[str, str]:
     """Get mapping from stock symbols to names.
 
     Args:
-        market: Market type ("us" or "cn")
+        market: Market type ("cn" or "crypto")
 
     Returns:
         Dictionary mapping symbols to names, e.g. {"600519.SH": "贵州茅台"}
@@ -393,13 +292,13 @@ def get_stock_name_mapping(market: str = "us") -> Dict[str, str]:
 
 
 def format_price_dict_with_names(
-    price_dict: Dict[str, Optional[float]], market: str = "us"
+    price_dict: Dict[str, Optional[float]], market: str = "cn"
 ) -> Dict[str, Optional[float]]:
     """Format price dictionary to include stock names for display.
 
     Args:
         price_dict: Original price dictionary with keys like "600519.SH_price"
-        market: Market type ("us" or "cn")
+        market: Market type ("cn" or "crypto")
 
     Returns:
         New dictionary with keys like "600519.SH (贵州茅台)_price" for CN market,
@@ -525,15 +424,15 @@ def get_yesterday_date(today_date: str, merged_path: Optional[str] = None, marke
 
 
 def get_open_prices(
-    today_date: str, symbols: List[str], merged_path: Optional[str] = None, market: str = "us"
+    today_date: str, symbols: List[str], merged_path: Optional[str] = None, market: str = "cn"
 ) -> Dict[str, Optional[float]]:
     """从 data/merged.jsonl 中读取指定日期与标的的开盘价。
 
     Args:
         today_date: 日期字符串，格式 YYYY-MM-DD或YYYY-MM-DD HH:MM:SS。
         symbols: 需要查询的股票代码列表。
-        merged_path: 可选，自定义 merged.jsonl 路径；默认读取项目根目录下 data/merged.jsonl。
-        market: 市场类型，"us" 为美股，"cn" 为A股
+        merged_path: 可选，自定义 merged.jsonl 路径；默认读取项目根目录下 data/A_stock/merged.jsonl。
+        market: 市场类型，"cn" 为A股，"crypto" 为加密货币
 
     Returns:
         {symbol_price: open_price 或 None} 的字典；若未找到对应日期或标的，则值为 None。
@@ -580,15 +479,15 @@ def get_open_prices(
 
 
 def get_yesterday_open_and_close_price(
-    today_date: str, symbols: List[str], merged_path: Optional[str] = None, market: str = "us"
+    today_date: str, symbols: List[str], merged_path: Optional[str] = None, market: str = "cn"
 ) -> Tuple[Dict[str, Optional[float]], Dict[str, Optional[float]]]:
     """从 data/merged.jsonl 中读取指定日期与股票的昨日买入价和卖出价。
 
     Args:
         today_date: 日期字符串，格式 YYYY-MM-DD，代表今天日期。
         symbols: 需要查询的股票代码列表。
-        merged_path: 可选，自定义 merged.jsonl 路径；默认读取项目根目录下 data/merged.jsonl。
-        market: 市场类型，"us" 为美股，"cn" 为A股
+        merged_path: 可选，自定义 merged.jsonl 路径；默认读取项目根目录下 data/A_stock/merged.jsonl。
+        market: 市场类型，"cn" 为A股，"crypto" 为加密货币
 
     Returns:
         (买入价字典, 卖出价字典) 的元组；若未找到对应日期或标的，则值为 None。
@@ -707,9 +606,9 @@ def get_yesterday_profit(
     """
     profit_dict = {}
 
-    # 使用传入的股票列表或默认的纳斯达克100列表
+    # 使用传入的股票列表或默认的SSE 50列表
     if stock_symbols is None:
-        stock_symbols = all_nasdaq_100_symbols
+        stock_symbols = all_sse_50_symbols
 
     # 遍历所有股票代码
     for symbol in stock_symbols:
@@ -971,9 +870,9 @@ if __name__ == "__main__":
     print(today_date, signature)
     yesterday_date = get_yesterday_date(today_date)
     print(yesterday_date)
-    # today_buy_price = get_open_prices(today_date, all_nasdaq_100_symbols)
+    # today_buy_price = get_open_prices(today_date, all_sse_50_symbols)
     # print(today_buy_price)
-    # yesterday_buy_prices, yesterday_sell_prices = get_yesterday_open_and_close_price(today_date, all_nasdaq_100_symbols)
+    # yesterday_buy_prices, yesterday_sell_prices = get_yesterday_open_and_close_price(today_date, all_sse_50_symbols)
     # print(yesterday_sell_prices)
     # today_init_position = get_today_init_position(today_date, signature='qwen3-max')
     # print(today_init_position)

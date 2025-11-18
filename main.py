@@ -107,17 +107,9 @@ async def main(config_path=None):
         print(str(e))
         exit(1)
 
-    # Get market type from configuration
-    market = config.get("market", "us")
-    # Auto-detect market from agent_type (BaseAgentAStock always uses CN market)
-    if agent_type == "BaseAgentAStock" or agent_type == "BaseAgentAStock_Hour":
-        market = "cn"
-
-    if market == "cn":
-        print(f"🌍 Market type: A-shares (China)")
-    else:
-        print(f"❌ US stock market is not supported in A-stock only system")
-        return
+    # Market is always CN for A-stock only system
+    market = "cn"
+    print(f"🌍 Market type: A-shares (China)")
 
     # Get date range from configuration file
     INIT_DATE = config["date_range"]["init_date"]
@@ -219,16 +211,12 @@ async def main(config_path=None):
         
         print(f"✅ Runtime config initialized: SIGNATURE={signature}, MARKET={market}")
 
-        # Select symbols based on agent type and market
+        # Select symbols based on agent type (A-stock only system)
         if agent_type == "BaseAgentAStock" or agent_type == "BaseAgentAStock_Hour":
             stock_symbols = None  # Let BaseAgentAStock use its default SSE 50
-        elif market == "cn":
+        else:
             from prompts.agent_prompt import all_sse_50_symbols
             stock_symbols = all_sse_50_symbols
-        else:
-            # No US stock support in A-stock only system
-            print("❌ US stock market is not supported in A-stock only system")
-            continue
 
         try:
             # Dynamically create Agent instance

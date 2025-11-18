@@ -495,8 +495,8 @@ bash scripts/start_ui.sh
 
 ```json
 {
-  "agent_type": "BaseAgent",
-  "market": "us",
+  "agent_type": "BaseAgentAStock",
+  "market": "cn",
   "date_range": {
     "init_date": "2025-01-01",
     "end_date": "2025-01-31"
@@ -513,10 +513,10 @@ bash scripts/start_ui.sh
     "max_steps": 30,
     "max_retries": 3,
     "base_delay": 1.0,
-    "initial_cash": 10000.0
+    "initial_cash": 100000.0
   },
   "log_config": {
-    "log_path": "./data/agent_data"
+    "log_path": "./data/agent_data_astock"
   }
 }
 ```
