@@ -12,11 +12,11 @@ cd data/A_stock
 
 echo "🚀 Starting A-stock data update with smart caching..."
 
-# 使用Alpha Vantage获取数据（支持智能跳过）
-python get_daily_price_alphavantage.py
+# 使用Tushare获取数据（支持智能跳过）
+python get_daily_price_tushare.py
 
 # 合并数据到JSONL格式
-python merge_jsonl_alphavantage.py
+python merge_jsonl_tushare.py
 
 echo "✅ A-stock data preparation completed!"
 
