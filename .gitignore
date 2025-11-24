@@ -80,7 +80,6 @@ refresh_data.sh
 
 # Config files (optional - uncomment if needed)
 configs/day_config.json
-configs/hour_config.json
 configs/test_config.json
 configs/test_day_config.json
 configs/astock.json
@@ -90,7 +89,6 @@ configs/test_*.json
 data/agent_data/test*/
 data/agent_data/*test*/
 data/merged_daily.jsonl
-data/merged_hour.jsonl
 
 # Jupyter Notebook
 .ipynb_checkpoints

@@ -88,7 +88,7 @@ agent_system_prompt_astock = """
 当前买入价格：
 {today_buy_price}
 
-上一时间段收益情况（日线=昨日收益，小时线=上一小时收益）：
+上一时间段收益情况（昨日收益）：
 {current_profit}
 
 当你认为任务完成时，输出
@@ -118,7 +118,6 @@ def get_agent_system_prompt_astock(today_date: str, signature: str, stock_symbol
 
     # 获取前一时间点的买入和卖出价格，硬编码market="cn"
     # 对于日线交易：获取昨日的开盘价和收盘价
-    # 对于小时级交易：获取上一小时的开盘价和收盘价
     yesterday_buy_prices, yesterday_sell_prices = get_yesterday_open_and_close_price(
         today_date, stock_symbols, market="cn"
     )
@@ -129,7 +128,6 @@ def get_agent_system_prompt_astock(today_date: str, signature: str, stock_symbol
     
     # 计算收益：(前一时间点收盘价 - 前一时间点开盘价) × 持仓数量
     # 对于日线交易：计算昨日收益
-    # 对于小时级交易：计算上一小时收益
     current_profit = get_yesterday_profit(
         today_date, yesterday_buy_prices, yesterday_sell_prices, today_init_position, stock_symbols
     )

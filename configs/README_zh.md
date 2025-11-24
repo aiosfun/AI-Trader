@@ -53,10 +53,6 @@
 # 美股市场（纳斯达克100）- 使用 default_config.json
 bash scripts/main.sh
 
-# 美股市场小时级数据
-bash scripts/main_step1.sh  # 准备小时级价格数据
-bash scripts/main_step2.sh  # 启动MCP服务
-bash scripts/main_step3.sh  # 使用 test_real_hour_config.json 运行
 
 # A股市场（上证50）- 使用 astock_config.json
 bash scripts/main_a_stock_step1.sh  # 准备A股数据
@@ -79,7 +75,6 @@ python main.py
 ```bash
 python main.py configs/my_custom_config.json
 python main.py configs/astock_config.json
-python main.py configs/test_real_hour_config.json
 ```
 
 ### 环境变量覆盖

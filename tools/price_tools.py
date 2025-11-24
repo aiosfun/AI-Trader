@@ -149,7 +149,7 @@ def _resolve_merged_file_path_for_date(
 ) -> Path:
     """
     Resolve the correct merged data file path taking into account market.
-    For A-shares: Daily trading only (no hourly support)
+    For A-shares: Daily trading only
     A custom merged_path, if provided, takes precedence.
     """
     if merged_path is not None:
@@ -210,10 +210,10 @@ def is_trading_day(date: str, market: str = "cn") -> bool:
                     if date in time_series:
                         return True
 
-                    # If no daily data, check for hourly data (e.g., "Time Series (60min)")
+                    # Check other time series data for the date
                     for key, value in data.items():
                         if key.startswith("Time Series") and isinstance(value, dict):
-                            # Check if any hourly timestamp starts with the date
+                            # Check if any timestamp starts with the date
                             for timestamp in value.keys():
                                 if timestamp.startswith(date):
                                     return True
@@ -360,8 +360,8 @@ def get_yesterday_date(today_date: str, merged_path: Optional[str] = None, marke
                 yesterday_dt -= timedelta(days=1)
             return yesterday_dt.strftime("%Y-%m-%d")
         else:
-            yesterday_dt = input_dt - timedelta(hours=1)
-            return yesterday_dt.strftime("%Y-%m-%d %H:%M:%S")
+            yesterday_dt = input_dt - timedelta(days=1)
+            return yesterday_dt.strftime("%Y-%m-%d")
     
     # 从 merged.jsonl 读取所有可用的交易时间
     all_timestamps = set()
@@ -389,8 +389,8 @@ def get_yesterday_date(today_date: str, merged_path: Optional[str] = None, marke
                 yesterday_dt -= timedelta(days=1)
             return yesterday_dt.strftime("%Y-%m-%d")
         else:
-            yesterday_dt = input_dt - timedelta(hours=1)
-            return yesterday_dt.strftime("%Y-%m-%d %H:%M:%S")
+            yesterday_dt = input_dt - timedelta(days=1)
+            return yesterday_dt.strftime("%Y-%m-%d")
     
     # 将所有时间戳转换为 datetime 对象，并找到小于 today_date 的最大时间戳
     previous_timestamp = None
@@ -412,8 +412,8 @@ def get_yesterday_date(today_date: str, merged_path: Optional[str] = None, marke
                 yesterday_dt -= timedelta(days=1)
             return yesterday_dt.strftime("%Y-%m-%d")
         else:
-            yesterday_dt = input_dt - timedelta(hours=1)
-            return yesterday_dt.strftime("%Y-%m-%d %H:%M:%S")
+            yesterday_dt = input_dt - timedelta(days=1)
+            return yesterday_dt.strftime("%Y-%m-%d")
 
     # 返回结果
     if date_only:
@@ -587,15 +587,14 @@ def get_yesterday_profit(
     stock_symbols: Optional[List[str]] = None,
 ) -> Dict[str, float]:
     """
-    获取持仓收益（适用于日线和小时级交易）
+    获取持仓收益（适用于日线交易）
     
     收益计算方式为：(前一时间点收盘价 - 前一时间点开盘价) × 当前持仓数量
     
     对于日线交易：计算昨日的收益
-    对于小时级交易：计算上一小时的收益
     
     Args:
-        today_date: 日期/时间字符串，格式 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS
+        today_date: 日期字符串，格式 YYYY-MM-DD
         yesterday_buy_prices: 前一时间点开盘价格字典，格式为 {symbol_price: price}
         yesterday_sell_prices: 前一时间点收盘价格字典，格式为 {symbol_price: price}
         yesterday_init_position: 前一时间点初始持仓字典，格式为 {symbol: quantity}

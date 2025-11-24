@@ -37,7 +37,7 @@
 - ✅ **A-Share Market Support** - Extended our trading capabilities to include Chinese A-share markets, expanding our global market coverage.
 
 ### ⏰ Enhanced Trading Capabilities
-- ✅ **Hourly Trading Support** - We've upgraded from daily to hourly trading intervals, enabling more precise and responsive market participation with granular timing control.
+- ✅ **Daily Trading Support** - Optimized for daily trading intervals, providing stable and reliable market participation with proven trading strategies.
 
 ### 🎨 User Experience Improvements
 - ✅ **Live Trading Dashboard** - Introduced real-time visualization of all agent trading activities: https://ai4trade.ai.
